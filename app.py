@@ -6,6 +6,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from fpdf import FPDF
 import tempfile
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 st.set_page_config(page_title="Weyland-Yutani Mining Ops", layout="wide")
 
@@ -122,34 +124,43 @@ if st.button("Generate Comprehensive PDF Report"):
             q3 = entity_df['output_fin'].quantile(0.75)
             iqr_val = q3 - q1
             
-            # IQR
             lower_bound = q1 - 1.5 * iqr_val
             upper_bound = q3 + 1.5 * iqr_val
             entity_df['anomaly_iqr'] = (entity_df['output_fin'] < lower_bound) | (entity_df['output_fin'] > upper_bound)
-            # Z-Score
+            
             entity_df['z_score'] = np.abs(stats.zscore(entity_df['output_fin']))
             entity_df['anomaly_zscore'] = entity_df['z_score'] > z_thresh
-            # Moving Average
+            
             entity_df['moving_avg'] = entity_df['output_fin'].rolling(window=ma_window).mean()
             pct_distance = np.abs(entity_df['output_fin'] - entity_df['moving_avg']) / entity_df['moving_avg'] * 100
             entity_df['anomaly_ma'] = pct_distance > ma_dist_pct
-            # Grubbs' Test
+            
             entity_df['anomaly_grubbs'] = grubbs_test(entity_df['output_fin'].values, grubbs_alpha)
             
-            fig_pdf = go.Figure()
-            if chart_type == "line":
-                fig_pdf.add_trace(go.Scatter(x=entity_df['date'], y=entity_df['output_fin'], mode='lines', name='Output', line=dict(color='gray')))
-            elif chart_type == "bar":
-                fig_pdf.add_trace(go.Bar(x=entity_df['date'], y=entity_df['output_fin'], name='Output', marker_color='gray'))
-            
             anomalies = entity_df[entity_df[anomaly_test] == True]
-            fig_pdf.add_trace(go.Scatter(x=anomalies['date'], y=anomalies['output_fin'], mode='markers', name='Anomaly', marker=dict(color='red', size=10, symbol='x')))
             
             x_numeric = np.arange(len(entity_df))
             coeffs = np.polyfit(x_numeric, entity_df['output_fin'], poly_degree)
             poly_trend = np.polyval(coeffs, x_numeric)
-            fig_pdf.add_trace(go.Scatter(x=entity_df['date'], y=poly_trend, mode='lines', name=f'Trend', line=dict(color='orange', dash='dash')))
 
+            plt.figure(figsize=(10, 5))
+            
+            if chart_type == "line":
+                plt.plot(entity_df['date'], entity_df['output_fin'], color='blue', label='Output')
+            elif chart_type == "bar":
+                plt.bar(entity_df['date'], entity_df['output_fin'], color='blue', label='Output')
+                
+            # Add anomalies and trendline
+            plt.scatter(anomalies['date'], anomalies['output_fin'], color='red', marker='x', s=100, label='Anomaly', zorder=5)
+            plt.plot(entity_df['date'], poly_trend, color='orange', linestyle='--', label=f'Trend (Deg {poly_degree})')
+            
+            plt.title(f"Operations: {entity}")
+            plt.xlabel("Date")
+            plt.ylabel("Resource Output")
+            plt.legend()
+            plt.tight_layout()
+
+            #building the PDF Page
             pdf.add_page()
             pdf.set_font("Arial", 'B', 16)
             pdf.cell(200, 10, txt=f"Operations Report: {entity}", ln=True, align='C')
@@ -157,12 +168,18 @@ if st.button("Generate Comprehensive PDF Report"):
             pdf.set_font("Arial", size=12)
             pdf.cell(200, 10, txt=f"Mean: {mean_val:.2f} | Std Dev: {std_val:.2f} | Median: {median_val:.2f} | IQR: {iqr_val:.2f}", ln=True)
             
+            # Save Matplotlib and insert into PDF
             with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
-                fig_pdf.write_image(tmpfile.name)
-                pdf.image(tmpfile.name, x=10, y=pdf.get_y(), w=190, h=100)
+                plt.savefig(tmpfile.name, format="png", dpi=150)
+                plt.close() # Critical: prevents memory leaks
                 
+                # Insert image into PDF
+                pdf.image(tmpfile.name, x=10, y=pdf.get_y(), w=190)
+                
+            # Move cursor below the image
             pdf.set_y(pdf.get_y() + 105) 
             
+            #Anomaly Log
             pdf.set_font("Arial", 'B', 12)
             pdf.cell(200, 10, txt=f"Detected Anomalies ({anomaly_test})", ln=True)
             pdf.set_font("Arial", size=10)
@@ -175,5 +192,6 @@ if st.button("Generate Comprehensive PDF Report"):
                     val = row['output_fin']
                     pdf.cell(200, 8, txt=f"- Date: {date_str} | Value: {val:.2f}", ln=True)
         
+        #final PDF
         pdf_bytes = pdf.output(dest='S').encode('latin-1')
         st.download_button(label="Download Comprehensive Report", data=pdf_bytes, file_name="WY_Comprehensive_Report.pdf", mime="application/pdf")

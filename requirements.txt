@@ -5,3 +5,4 @@ scipy
 plotly
 fpdf
 kaleido==0.1.*
+matplotlib
