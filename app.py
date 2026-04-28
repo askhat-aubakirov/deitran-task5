@@ -10,7 +10,7 @@ import os
 
 #force Streamlit server terminal to download the required Chrome binary
 try:
-    os.system("kaleido_get_chrome")
+    os.system("plotly_get_chrome")
 except Exception as e:
     pass
 # ---------------
