@@ -98,7 +98,7 @@ coeffs = np.polyfit(x_numeric, plot_df['output_fin'], poly_degree)
 poly_trend = np.polyval(coeffs, x_numeric)
 fig.add_trace(go.Scatter(x=plot_df['date'], y=poly_trend, mode='lines', name=f'Trend (Degree {poly_degree})', line=dict(color='orange', dash='dash')))
 
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width="stretch")
 
 #pdf gen and download
 st.subheader("Reporting")
@@ -158,7 +158,7 @@ if st.button("Generate Comprehensive PDF Report"):
             pdf.cell(200, 10, txt=f"Mean: {mean_val:.2f} | Std Dev: {std_val:.2f} | Median: {median_val:.2f} | IQR: {iqr_val:.2f}", ln=True)
             
             with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
-                fig_pdf.write_image(tmpfile.name, engine="kaleido")
+                fig_pdf.write_image(tmpfile.name)
                 pdf.image(tmpfile.name, x=10, y=pdf.get_y(), w=190, h=100)
                 
             pdf.set_y(pdf.get_y() + 105) 
