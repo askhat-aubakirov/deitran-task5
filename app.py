@@ -6,6 +6,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 from fpdf import FPDF
 import tempfile
+import os
+
+#force Streamlit server terminal to download the required Chrome binary
+try:
+    os.system("kaleido_get_chrome")
+except Exception as e:
+    pass
+# ---------------
 
 st.set_page_config(page_title="Weyland-Yutani Mining Ops", layout="wide")
 
