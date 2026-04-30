@@ -207,7 +207,7 @@ if st.button("Generate Classified PDF Report"):
 
             # 4. Generate Professional Matplotlib Chart
             # Use a cleaner style for corporate reports
-            plt.style.use('bmh') 
+            plt.style.use('seaborn-v0_8-whitegrid')
             plt.figure(figsize=(10, 4.5))
             
             if chart_type == "line":
