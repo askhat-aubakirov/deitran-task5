@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit_autorefresh import st_autorefresh
 import pandas as pd
 import numpy as np
 import scipy.stats as stats
@@ -14,6 +13,7 @@ st.set_page_config(page_title="Weyland-Yutani Mining Ops", layout="wide")
 
 @st.cache_data(ttl=5)
 def load_data():
+    
     url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRvGsL0oCRRFnFNdfXxs6sP9sBj9SL36Q7XNSTfFmSnp1Lim_-Em0q8WifeLfrLhM4krTpTOgwEt_k8/pub?gid=1613964847&single=true&output=csv"
     df = pd.read_csv(url)
     df['date'] = pd.to_datetime(df['date'])
@@ -21,12 +21,15 @@ def load_data():
 
 df = load_data()
 
-st_autorefresh(interval=10000, key="wy_data_refresh")
-
 st.title("Weyland-Yutani Mining Ops Dashboard")
 st.markdown("by Askhat Aubakirov. Data Engineering Itransition TASK5. April 2026.")
 
 st.sidebar.title("Configuration")
+
+if st.sidebar.button("🔄 Force Data Refresh"):
+    load_data.clear()
+    st.rerun()
+
 selected_mine = st.sidebar.selectbox("Select Mine", ["Total Output"] + list(df['mine_name'].unique()))
 
 if selected_mine == "Total Output":
