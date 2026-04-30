@@ -8,15 +8,18 @@ from fpdf import FPDF
 import tempfile
 import matplotlib.pyplot as plt
 from datetime import datetime
+import time
 
 st.set_page_config(page_title="Weyland-Yutani Mining Ops", layout="wide")
 
 @st.cache_data(ttl=5)
 def load_data():
+    current_time = int(time.time())
+    url = f"https://docs.google.com/spreadsheets/d/e/2PACX-1vRvGsL0oCRRFnFNdfXxs6sP9sBj9SL36Q7XNSTfFmSnp1Lim_-Em0q8WifeLfrLhM4krTpTOgwEt_k8/pub?gid=1613964847&single=true&output=csv&_cb={current_time}"
     
-    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRvGsL0oCRRFnFNdfXxs6sP9sBj9SL36Q7XNSTfFmSnp1Lim_-Em0q8WifeLfrLhM4krTpTOgwEt_k8/pub?gid=1613964847&single=true&output=csv"
     df = pd.read_csv(url)
     df['date'] = pd.to_datetime(df['date'])
+
     return df
 
 df = load_data()
