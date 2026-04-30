@@ -11,7 +11,7 @@ from datetime import datetime
 
 st.set_page_config(page_title="Weyland-Yutani Mining Ops", layout="wide")
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=5)
 def load_data():
     url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRvGsL0oCRRFnFNdfXxs6sP9sBj9SL36Q7XNSTfFmSnp1Lim_-Em0q8WifeLfrLhM4krTpTOgwEt_k8/pub?gid=1613964847&single=true&output=csv"
     df = pd.read_csv(url)
