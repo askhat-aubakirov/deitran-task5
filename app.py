@@ -4,6 +4,7 @@ import numpy as np
 import scipy.stats as stats
 import plotly.express as px
 import plotly.graph_objects as go
+from fpdf import FPDF
 import tempfile
 import matplotlib.pyplot as plt
 from datetime import datetime
