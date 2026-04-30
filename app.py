@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 import pandas as pd
 import numpy as np
 import scipy.stats as stats
@@ -20,6 +21,8 @@ def load_data():
 
 df = load_data()
 
+st_autorefresh(interval=10000, key="wy_data_refresh")
+
 st.title("Weyland-Yutani Mining Ops Dashboard")
 st.markdown("by Askhat Aubakirov. Data Engineering Itransition TASK5. April 2026.")
 
@@ -27,7 +30,8 @@ st.sidebar.title("Configuration")
 selected_mine = st.sidebar.selectbox("Select Mine", ["Total Output"] + list(df['mine_name'].unique()))
 
 if selected_mine == "Total Output":
-    plot_df = df.groupby('date')['output_fin'].sum().reset_index()
+    # Changed .sum() to .mean() to average across mines
+    plot_df = df.groupby('date')['output_fin'].mean().reset_index() 
 else:
     plot_df = df[df['mine_name'] == selected_mine].copy()
 
@@ -173,7 +177,7 @@ if st.button("Generate Classified PDF Report"):
         for entity in reporting_entities:
             # 1. Filter Data
             if entity == "Total Output":
-                entity_df = df.groupby('date')['output_fin'].sum().reset_index()
+                entity_df = df.groupby('date')['output_fin'].mean().reset_index()
             else:
                 entity_df = df[df['mine_name'] == entity].copy()
                 
